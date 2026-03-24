@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StreamFlix</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- ── CleverTap SDK ──────────────────────────────────────────────────── -->
+  <script type="text/javascript">
+    var clevertap = {
+      event: [], profile: [], account: [], onUserLogin: [],
+      notifications: [], privacy: [],
+      token: "TEST-4c1-3c3"
+    };
+    clevertap.account.push({ "id": "TEST-K9K-Z94-R46Z" });
+    clevertap.privacy.push({ optOut: false });
+    clevertap.privacy.push({ useIP: false });
+    (function () {
+      var wzrk = document.createElement('script');
+      wzrk.type = 'text/javascript';
+      wzrk.async = true;
+      wzrk.src = ('https:' == document.location.protocol
+        ? 'https://d2r1yp2w7bby2u.cloudfront.net'
+        : 'http://static.clevertap.com') + '/js/clevertap.min.js';
+      wzrk.onload = function () {
+        document.dispatchEvent(new CustomEvent('clevertap:ready'));
+      };
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(wzrk, s);
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-left">
+      <div class="logo" onclick="navigateTo('home')">STREAMFLIX</div>
+      <ul class="nav-links">
+        <li><a href="#home"      data-page="home">Home</a></li>
+        <li><a href="#tvshows"   data-page="tvshows">TV Shows</a></li>
+        <li><a href="#movies"    data-page="movies">Movies</a></li>
+        <li><a href="#new"       data-page="new">New &amp; Popular</a></li>
+        <li><a href="#mylist"    data-page="mylist">My List</a></li>
+      </ul>
+    </div>
+    <div class="nav-right">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <img class="avatar" src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png" alt="avatar" />
+    </div>
+  </nav>
+
+  <!-- Hero Banner (hidden on My List page) -->
+  <section class="hero" id="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <p class="hero-tag" id="hero-tag">Featured Film</p>
+      <h1 class="hero-title" id="hero-title">Loading...</h1>
+      <p class="hero-desc" id="hero-desc"></p>
+      <div class="hero-buttons">
+        <button class="btn btn-play" id="hero-cta">&#9654; Play</button>
+        <button class="btn btn-info" id="hero-info">&#9432; More Info</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Page banner — shown on My List instead of full hero -->
+  <div class="page-banner" id="page-banner" style="display:none;">
+    <h1 id="page-banner-title"></h1>
+    <p id="page-banner-sub"></p>
+  </div>
+
+  <!-- Dynamic content rows -->
+  <main class="content" id="main-content"></main>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal()">&#10005;</button>
+      <div class="modal-backdrop" id="modal-backdrop"></div>
+      <div class="modal-body">
+        <h2 id="modal-title"></h2>
+        <div class="modal-meta" id="modal-meta"></div>
+        <p id="modal-overview"></p>
+        <div class="modal-buttons">
+          <button class="btn btn-play">&#9654; Play</button>
+          <button class="btn btn-list" id="modal-mylist-btn" onclick="toggleMyList()">+ My List</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CleverTap Debug Panel -->
+  <div id="ct-debug" class="ct-debug">
+    <div class="ct-debug-header">
+      <span>CleverTap Variables</span>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button id="ct-fetch-btn" onclick="window.fetchLatestVariables()"
+          style="font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid #e50914;background:transparent;color:#e50914;cursor:pointer;font-weight:700;letter-spacing:.3px;">
+          Fetch Latest
+        </button>
+        <button onclick="document.getElementById('ct-debug').classList.toggle('collapsed')">▾</button>
+      </div>
+    </div>
+    <div class="ct-debug-body" id="ct-debug-body">
+      <p class="ct-debug-loading">Fetching from CleverTap…</p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
