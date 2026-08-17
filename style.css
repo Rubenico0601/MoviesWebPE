@@ -53,6 +53,7 @@ body {
   font-weight: 900;
   letter-spacing: 2px;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .nav-links {
@@ -583,6 +584,88 @@ body {
   text-align: center;
   font-size: 18px;
   color: #888;
+}
+
+/* ── BROWSE HUB (/browse/) ── */
+.hub-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 18px;
+  padding: 10px 0 30px;
+}
+.hub-tile {
+  position: relative;
+  display: block;
+  min-height: 260px;
+  border-radius: 8px;
+  overflow: hidden;
+  text-decoration: none;
+  color: #fff;
+  background: #222 center/cover no-repeat;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hub-tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.92) 15%, rgba(0, 0, 0, 0.25) 70%);
+}
+.hub-tile:hover {
+  transform: scale(1.02);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
+}
+.hub-tile-body {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 24px;
+}
+.hub-tile-body h3 {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+.hub-tile-body p {
+  font-size: 13px;
+  color: #bbb;
+  margin: 6px 0 12px;
+}
+.hub-tile-cta {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--red);
+  letter-spacing: 0.5px;
+}
+
+/* ── BREADCRUMB + CATALOG PROMO (sub-directory pages) ── */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 0 4px;
+  font-size: 12px;
+  color: #888;
+  letter-spacing: 0.4px;
+}
+.breadcrumb a {
+  color: #888;
+  text-decoration: none;
+}
+.breadcrumb a:hover { color: #fff; }
+.breadcrumb span { color: #fff; font-weight: 700; }
+.breadcrumb i { color: #555; font-style: normal; }
+
+.catalog-promo {
+  margin: 10px 0 4px;
+  padding: 10px 16px;
+  border-left: 3px solid var(--red);
+  border-radius: 4px;
+  background: rgba(229, 9, 20, 0.08);
+  font-size: 13px;
+  color: #ddd;
 }
 
 /* ── MODAL MY LIST IN-LIST STATE ── */
