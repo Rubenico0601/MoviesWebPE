@@ -85,6 +85,85 @@ const PAGES = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PATH PAGES — real sub-directories on disk, so the URL is a genuine path
+// (good for CleverTap campaign targeting on "URL contains /browse/movies")
+//
+//   /browse/            → browse/index.html         (hub)
+//   /browse/movies/     → browse/movies/index.html
+//   /browse/tv/         → browse/tv/index.html
+//
+// The key below must match the trailing path segments of the directory.
+// ─────────────────────────────────────────────────────────────────────────────
+const PATH_PAGES = {
+  'browse': {
+    isHub: true,
+    banner: { title: 'Browse the Catalog', sub: 'Two collections, everything in them' },
+    tiles: [
+      { label: 'Movies',   href: 'movies/', endpoint: '/movie/popular', sub: 'Blockbusters, classics & what is in theatres' },
+      { label: 'TV Shows', href: 'tv/',     endpoint: '/tv/popular',    sub: 'Series, limited runs & what airs tonight'    },
+    ],
+  },
+  'browse/movies': {
+    heroEndpoint: '/movie/now_playing',
+    heroMediaType: 'movie',
+    heroTag: 'Browse · Movies',
+    breadcrumb: [
+      { label: 'Home',   href: '../../index.html' },
+      { label: 'Browse', href: '../index.html'    },
+      { label: 'Movies' },
+    ],
+    category: 'Browse', subcategory: 'Movies',
+    rows: [
+      { id: 'br_mov_popular',  label: 'Popular Movies',       endpoint: '/movie/popular',                                                    mediaType: 'movie' },
+      { id: 'br_mov_theatres', label: 'In Theatres Now',      endpoint: '/movie/now_playing',                                                mediaType: 'movie' },
+      { id: 'br_mov_acclaim',  label: 'Critically Acclaimed', endpoint: '/discover/movie?sort_by=vote_average.desc&vote_count.gte=2000',     mediaType: 'movie' },
+      { id: 'br_mov_action',   label: 'Action & Adventure',   endpoint: '/discover/movie?with_genres=28,12&sort_by=popularity.desc',         mediaType: 'movie' },
+      { id: 'br_mov_docs',     label: 'Documentaries',        endpoint: '/discover/movie?with_genres=99&sort_by=popularity.desc',            mediaType: 'movie' },
+      { id: 'br_mov_family',   label: 'Family Night',         endpoint: '/discover/movie?with_genres=10751&sort_by=popularity.desc',         mediaType: 'movie' },
+    ],
+  },
+  'browse/tv': {
+    heroEndpoint: '/tv/top_rated',
+    heroMediaType: 'tv',
+    heroTag: 'Browse · TV Shows',
+    breadcrumb: [
+      { label: 'Home',   href: '../../index.html' },
+      { label: 'Browse', href: '../index.html'    },
+      { label: 'TV Shows' },
+    ],
+    category: 'Browse', subcategory: 'TV Shows',
+    rows: [
+      { id: 'br_tv_popular', label: 'Popular Series',    endpoint: '/tv/popular',                                            mediaType: 'tv' },
+      { id: 'br_tv_today',   label: 'Airing Today',      endpoint: '/tv/airing_today',                                       mediaType: 'tv' },
+      { id: 'br_tv_top',     label: 'All-Time Top Rated',endpoint: '/tv/top_rated',                                          mediaType: 'tv' },
+      { id: 'br_tv_reality', label: 'Reality TV',        endpoint: '/discover/tv?with_genres=10764&sort_by=popularity.desc',  mediaType: 'tv' },
+      { id: 'br_tv_docs',    label: 'Docuseries',        endpoint: '/discover/tv?with_genres=99&sort_by=popularity.desc',     mediaType: 'tv' },
+      { id: 'br_tv_anim',    label: 'Animation',         endpoint: '/discover/tv?with_genres=16&sort_by=popularity.desc',     mediaType: 'tv' },
+    ],
+  },
+};
+
+// Path pages join the same registry so the existing router/renderer handles them
+Object.assign(PAGES, PATH_PAGES);
+const PATH_ROUTES = new Set(Object.keys(PATH_PAGES));
+
+// Derive the route from the real URL path — falls back to the hash.
+// Matches the last two segments first ("browse/movies"), then the last one.
+function routeFromLocation() {
+  const seg = window.location.pathname
+    .split('/')
+    .filter(s => s && !s.endsWith('.html'));
+
+  for (const depth of [2, 1]) {
+    if (seg.length >= depth) {
+      const key = seg.slice(-depth).join('/');
+      if (PATH_ROUTES.has(key)) return key;
+    }
+  }
+  return window.location.hash.replace('#', '') || 'home';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // MY LIST — persisted in localStorage
 // ─────────────────────────────────────────────────────────────────────────────
 function getMyList() {
@@ -162,6 +241,18 @@ function trackCardClick(item, mediaType) {
   console.log(`[CleverTap] Content Preference → "${preference}" (🎬${movieClicks} 📺${tvClicks})`);
 }
 
+// Fired on the real sub-directory pages — lets CleverTap segment on path
+function trackCategoryView(route) {
+  const def = PAGES[route];
+  clevertap.event.push('category_page_viewed', {
+    'Path':        window.location.pathname,
+    'Category':    def.category    ?? 'Browse',
+    'Subcategory': def.subcategory ?? 'Hub',
+  });
+  clevertap.profile.push({ Site: { 'Last Category Viewed': def.subcategory ?? 'Browse Hub' } });
+  console.log('[CleverTap] category_page_viewed →', route);
+}
+
 function setPlanType(plan) {
   clevertap.profile.push({ Site: { 'Plan Type': plan } });
   console.log('[CleverTap] Plan Type:', plan);
@@ -181,6 +272,7 @@ function defineCleverTapVariables() {
   ctVars.accent_color     = clevertap.defineVariable('CTWebsite.accent_color',     '#e50914');
   ctVars.hero_cta_label   = clevertap.defineVariable('CTWebsite.hero_cta_label',   'Play');
   ctVars.show_match_score = clevertap.defineVariable('CTWebsite.show_match_score', true);
+  ctVars.catalog_promo    = clevertap.defineVariable('CTWebsite.catalog_promo',     'New titles added every Friday');
 }
 
 function getVariableValues() {
@@ -193,6 +285,7 @@ function getVariableValues() {
     accent_color:     ctVars.accent_color?.getValue()      ?? '#e50914',
     hero_cta_label:   ctVars.hero_cta_label?.getValue()    ?? 'Play',
     show_match_score: ctVars.show_match_score?.getValue()  ?? true,
+    catalog_promo:    ctVars.catalog_promo?.getValue()      ?? 'New titles added every Friday',
   };
 }
 
@@ -330,6 +423,54 @@ function renderMyListPage() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// BROWSE HUB — /browse/ : one tile per sub-directory
+// ─────────────────────────────────────────────────────────────────────────────
+function buildPromoHTML(text) {
+  return text ? `<div class="catalog-promo">${text}</div>` : '';
+}
+
+function buildBreadcrumbHTML(trail) {
+  if (!trail) return '';
+  const parts = trail.map(c =>
+    c.href ? `<a href="${c.href}">${c.label}</a>` : `<span>${c.label}</span>`
+  );
+  return `<nav class="breadcrumb">${parts.join('<i>/</i>')}</nav>`;
+}
+
+async function renderBrowseHub(route, vals) {
+  const def  = PAGES[route];
+  const main = document.getElementById('main-content');
+
+  main.innerHTML = `
+    ${buildPromoHTML(vals.catalog_promo)}
+    <section class="row">
+      <h2 class="row-title">Collections</h2>
+      <div class="hub-tiles" id="hub-tiles">
+        ${def.tiles.map((t, i) => `
+          <a class="hub-tile" id="hub-tile-${i}" href="${t.href}">
+            <div class="hub-tile-body">
+              <h3>${t.label}</h3>
+              <p>${t.sub}</p>
+              <span class="hub-tile-cta">Explore &#8250;</span>
+            </div>
+          </a>`).join('')}
+      </div>
+    </section>`;
+
+  // Give each tile a backdrop from its own collection
+  await Promise.all(def.tiles.map(async (t, i) => {
+    try {
+      const data = await fetchData(t.endpoint);
+      const item = data.results.find(r => r.backdrop_path);
+      const el   = document.getElementById(`hub-tile-${i}`);
+      if (item && el) el.style.backgroundImage = `url(${BG_BASE}${item.backdrop_path})`;
+    } catch (err) {
+      console.warn('Hub tile art failed:', t.label, err);
+    }
+  }));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // CARD RENDERING
 // ─────────────────────────────────────────────────────────────────────────────
 function renderCards(containerId, items, mediaType = 'movie', showMatchScore = true) {
@@ -451,8 +592,9 @@ let currentPage = 'home';
 async function navigateTo(page) {
   if (!PAGES[page] && page !== 'mylist') page = 'home';
   currentPage = page;
-  window.location.hash = page;
-  setActiveNav(page);
+  // Path pages already live at a real URL — don't append a hash to it
+  if (!PATH_ROUTES.has(page)) window.location.hash = page;
+  setActiveNav(PATH_ROUTES.has(page) ? 'browse' : page);
   window.scrollTo({ top: 0 });
 
   const vals     = getVariableValues();
@@ -477,12 +619,35 @@ async function navigateTo(page) {
     return;
   }
 
+  if (PAGES[page].isHub) {
+    // Browse hub: no hero, banner + collection tiles
+    hero.style.display   = 'none';
+    banner.style.display = 'flex';
+    document.getElementById('page-banner-title').textContent = PAGES[page].banner.title;
+    document.getElementById('page-banner-sub').textContent   = PAGES[page].banner.sub;
+    trackCategoryView(page);
+    try {
+      await renderBrowseHub(page, vals);
+    } catch (err) {
+      console.error('StreamFlix load error:', err);
+    }
+    return;
+  }
+
   // All other pages: show hero, hide banner
   hero.style.display   = '';
   banner.style.display = 'none';
 
   try {
-    if (page === 'home') {
+    if (PATH_ROUTES.has(page)) {
+      trackCategoryView(page);
+      await Promise.all([
+        loadHero(page, vals),
+        loadPageRows(PAGES[page].rows, vals.show_match_score),
+      ]);
+      main.insertAdjacentHTML('afterbegin',
+        buildBreadcrumbHTML(PAGES[page].breadcrumb) + buildPromoHTML(vals.catalog_promo));
+    } else if (page === 'home') {
       await Promise.all([loadHero(page, vals), renderHomePage(vals)]);
     } else {
       await Promise.all([loadHero(page, vals), loadPageRows(PAGES[page].rows, vals.show_match_score)]);
@@ -494,8 +659,9 @@ async function navigateTo(page) {
 }
 
 window.addEventListener('hashchange', () => {
-  const page = window.location.hash.replace('#', '') || 'home';
-  navigateTo(page);
+  // On a path page the hash is meaningless — the directory defines the route
+  if (PATH_ROUTES.has(routeFromLocation())) return;
+  navigateTo(window.location.hash.replace('#', '') || 'home');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -506,6 +672,7 @@ const VARIABLE_LABELS = {
   row_order: 'CTWebsite.row_order', show_tv_row: 'CTWebsite.show_tv_row',
   trending_label: 'CTWebsite.trending_label', accent_color: 'CTWebsite.accent_color',
   hero_cta_label: 'CTWebsite.hero_cta_label', show_match_score: 'CTWebsite.show_match_score',
+  catalog_promo: 'CTWebsite.catalog_promo',
 };
 
 const VARIABLE_DEFAULTS = {
@@ -513,6 +680,7 @@ const VARIABLE_DEFAULTS = {
   row_order: 'trending,popular,toprated,tvshows', show_tv_row: true,
   trending_label: 'Trending Now', accent_color: '#e50914',
   hero_cta_label: 'Play', show_match_score: true,
+  catalog_promo: 'New titles added every Friday',
 };
 
 function updateDebugPanel(vals) {
@@ -618,9 +786,8 @@ function onCTReady() {
 // BOOT
 // ─────────────────────────────────────────────────────────────────────────────
 function boot() {
-  // Render the page from hash (or default to home) immediately with CT defaults
-  const startPage = window.location.hash.replace('#', '') || 'home';
-  navigateTo(startPage);
+  // Render from the URL path (real sub-directories) or the hash, with CT defaults
+  navigateTo(routeFromLocation());
 
   // Wire up CT SDK when ready
   if (typeof clevertap.defineVariable === 'function') {

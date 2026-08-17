@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StreamFlix</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Browse · StreamFlix</title>
+  <link rel="stylesheet" href="../style.css" />
 
   <!-- ── CleverTap SDK ──────────────────────────────────────────────────── -->
   <script type="text/javascript">
@@ -36,14 +36,14 @@
   <!-- Navbar -->
   <nav class="navbar" id="navbar">
     <div class="nav-left">
-      <div class="logo" onclick="navigateTo('home')">STREAMFLIX</div>
+      <a class="logo" href="../index.html">STREAMFLIX</a>
       <ul class="nav-links">
-        <li><a href="#home"      data-page="home">Home</a></li>
-        <li><a href="#tvshows"   data-page="tvshows">TV Shows</a></li>
-        <li><a href="#movies"    data-page="movies">Movies</a></li>
-        <li><a href="#new"       data-page="new">New &amp; Popular</a></li>
-        <li><a href="#mylist"    data-page="mylist">My List</a></li>
-        <li><a href="browse/index.html" data-page="browse">Browse</a></li>
+        <li><a href="../index.html#home"    data-page="home">Home</a></li>
+        <li><a href="../index.html#tvshows" data-page="tvshows">TV Shows</a></li>
+        <li><a href="../index.html#movies"  data-page="movies">Movies</a></li>
+        <li><a href="../index.html#new"     data-page="new">New &amp; Popular</a></li>
+        <li><a href="../index.html#mylist"  data-page="mylist">My List</a></li>
+        <li><a href="index.html"            data-page="browse">Browse</a></li>
       </ul>
     </div>
     <div class="nav-right">
@@ -53,12 +53,12 @@
     </div>
   </nav>
 
-  <!-- Hero Banner (hidden on My List page) -->
-  <section class="hero" id="hero">
+  <!-- Hero is hidden on the hub, but app.js expects these nodes to exist -->
+  <section class="hero" id="hero" style="display:none;">
     <div class="hero-overlay"></div>
     <div class="hero-content">
-      <p class="hero-tag" id="hero-tag">Featured Film</p>
-      <h1 class="hero-title" id="hero-title">Loading...</h1>
+      <p class="hero-tag" id="hero-tag"></p>
+      <h1 class="hero-title" id="hero-title"></h1>
       <p class="hero-desc" id="hero-desc"></p>
       <div class="hero-buttons">
         <button class="btn btn-play" id="hero-cta">&#9654; Play</button>
@@ -67,13 +67,11 @@
     </div>
   </section>
 
-  <!-- Page banner — shown on My List instead of full hero -->
   <div class="page-banner" id="page-banner" style="display:none;">
     <h1 id="page-banner-title"></h1>
     <p id="page-banner-sub"></p>
   </div>
 
-  <!-- Dynamic content rows -->
   <main class="content" id="main-content"></main>
 
   <!-- Modal -->
@@ -110,6 +108,6 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="../app.js"></script>
 </body>
 </html>
